@@ -10,7 +10,7 @@ int angle;
 
 void setup() {
   myservo.attach(9); // attaches the servo on pin 9 to the servo object
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.setTimeout(1);
 }
 
@@ -21,6 +21,6 @@ void loop() {
     for (pos = 0; pos <= angle; pos += 1) { 
         // in steps of 1 degree
         myservo.write(pos); 
-        delay(15);    
+        delay(30);    
   }
 }

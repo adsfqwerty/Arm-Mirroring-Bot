@@ -1,7 +1,12 @@
 import serial
 import time
+from mediapipe_test import getCoords
 
 
-def sendData(coord, br, tout=0.1):
+def sendData(coord, br=9600, tout=1):
     arduino = serial.Serial('COM3', baudrate=br, timeout=tout)
-    arduino.write(coord, 'utf-8')
+    arduino.write(coord)
+
+if __name__ == "__main__":
+  while True:
+      sendData(getCoords())
