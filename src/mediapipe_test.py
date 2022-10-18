@@ -1,6 +1,11 @@
 import math
 import cv2
 import mediapipe as mp
+import serial
+
+def getAngle(left_shoulder, left_elbow):
+  return math.atan2(left_elbow.y - left_shoulder.y, left_elbow.x - left_shoulder.x) * 180 / math.pi
+
 def getCoords():
   mp_drawing = mp.solutions.drawing_utils
   mp_drawing_styles = mp.solutions.drawing_styles
@@ -11,6 +16,7 @@ def getCoords():
 
   # For webcam input:
   cap = cv2.VideoCapture(0)
+  arduino = serial.Serial('COM3', baudrate=9600, timeout=1)
   with mp_pose.Pose(
       min_detection_confidence=0.5,
       min_tracking_confidence=0.5) as pose:
@@ -43,11 +49,10 @@ def getCoords():
           left_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER]
           left_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW]
 
-          def getAngle(left_shoulder, left_elbow):
-            return math.atan2(left_elbow.y - left_shoulder.y, left_elbow.x - left_shoulder.x) * 180 / math.pi
           angle = getAngle(left_shoulder, left_elbow)
           
           if left_shoulder != None or left_elbow != None or angle != None:
+            arduino.write(angle) 
             print(
                 f'Left Shoulder coordinates: ('
                 f'{results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].x * image_width}, '
@@ -64,6 +69,7 @@ def getCoords():
             )
         except AttributeError:
           pass
+  
 
   cap.release()
 
