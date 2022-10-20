@@ -69,19 +69,19 @@ def getCoords():
         if cv2.waitKey(5) & 0xFF == 27:
           break
         try:
-          left_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER]
-          left_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW]
-
-          angle = getAngle(left_shoulder, left_elbow)
-          
           #update the coordinates only every second
           if current_time == desired_time:
+            left_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER]
+            left_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW]
+
+            angle = getAngle(left_shoulder, left_elbow)
+
             desired_time +=1
 
             if left_shoulder != None or left_elbow != None or angle != None:
               
               arduino.write(str(math.ceil(angle)).encode()) 
-            #   arduino.write(struct.pack('>B', math.ceil(angle)))
+              # arduino.write(struct.pack('>B', math.ceil(angle)))
               #time.sleep(0.5)
               print(
                   f'Left Shoulder coordinates: ('
