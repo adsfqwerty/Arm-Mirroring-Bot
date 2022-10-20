@@ -24,13 +24,15 @@ void loop() {
   if (Serial.available() > 0) {
       angle_str = Serial.readString();
       angle = angle_str.toInt(); // make sure angle is converted from float to int in python before sending it over to the arduino
+      Serial.print(angle);
     //for (pos = 0; pos <= angle; pos += 1) { 
         // in steps of 1 degree
     //    myservo.write(pos); 
     //    delay(5);
     //}
-      for(int i=0; i<16; i++) {      
-          pwm.setPWM(12, 0, angleToPulse(angle) );
+      for(int i=0; i<angle; i+=5) {      
+          pwm.setPWM(12, 0, angleToPulse(i) );
+          delay(5);
       }    
   }
 }
