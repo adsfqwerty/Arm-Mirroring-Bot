@@ -1,6 +1,12 @@
-#include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
 
-Servo myservo;  // create servo object to control a servo
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+#define SERVOMIN  125 // this is the 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  575 // this is the 'maximum' pulse length count (out of 4096)
+
+// Servo myservo;  // create servo object to control a servo
 // twelve servo objects can be created on most boards
 
 int pos = 0;    // variable to store the servo position
@@ -18,9 +24,20 @@ void loop() {
   if (Serial.available() > 0) {
       angle_str = Serial.readString();
       angle = angle_str.toInt(); // make sure angle is converted from float to int in python before sending it over to the arduino
-    for (pos = 0; pos <= angle; pos += 1) { 
+    //for (pos = 0; pos <= angle; pos += 1) { 
         // in steps of 1 degree
-        myservo.write(pos); 
-        delay(30);    
+    //    myservo.write(pos); 
+    //    delay(5);
+    //}
+      for(int i=0; i<16; i++) {      
+          pwm.setPWM(12, 0, angleToPulse(angle) );
+      }    
   }
+}
+
+int angleToPulse(int ang){
+   int pulse = map(ang,0, 180, SERVOMIN,SERVOMAX);// map angle of 0 to 180 to Servo min and Servo max 
+   Serial.print("Angle: ");Serial.print(ang);
+   Serial.print(" pulse: ");Serial.println(pulse);
+   return pulse;
 }

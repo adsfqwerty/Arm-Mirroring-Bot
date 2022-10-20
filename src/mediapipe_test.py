@@ -4,6 +4,7 @@ import cv2
 import mediapipe as mp
 import serial
 import time
+import struct
 
 #variable for timer
 actual_time = 0
@@ -80,6 +81,7 @@ def getCoords():
             if left_shoulder != None or left_elbow != None or angle != None:
               
               arduino.write(str(math.ceil(angle)).encode()) 
+            #   arduino.write(struct.pack('>B', math.ceil(angle)))
               #time.sleep(0.5)
               print(
                   f'Left Shoulder coordinates: ('
@@ -94,6 +96,11 @@ def getCoords():
               print(
                   f'Left Angle in degrees: '
                   f'{angle}'
+              )
+              arduino_read = arduino.readline()
+              print(
+                  f'Arduino is receiving: '
+                  f'{arduino_read}'
               )
         except AttributeError:
           pass
