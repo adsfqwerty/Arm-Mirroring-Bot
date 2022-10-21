@@ -24,7 +24,7 @@ def getCoords():
   # For webcam input:
   cap = cv2.VideoCapture(0)
   #serial communication for windows
-  arduino = serial.Serial('COM3', baudrate=9600, timeout=1)
+  ##arduino = serial.Serial('COM3', baudrate=9600, timeout=1)
   #serial communication for linux
   #arduino = serial.Serial('/dev/ttyUSB0', baudrate=9600, timeout=1)
 
@@ -79,7 +79,7 @@ def getCoords():
 
             if left_shoulder != None or left_elbow != None or angle != None:
               
-              arduino.write(str(math.ceil(angle)).encode()) 
+              ##arduino.write(str(math.ceil(angle)).encode()) 
               #time.sleep(0.5)
               print(
                   f'Left Shoulder coordinates: ('
