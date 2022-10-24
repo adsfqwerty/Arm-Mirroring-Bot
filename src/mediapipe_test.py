@@ -32,7 +32,7 @@ def getCoords():
   #initialize timer variables
   actual_time = time.time()
   current_time = math.floor(actual_time)
-  desired_time = current_time + 5
+  desired_time = current_time + 1
 
   with mp_pose.Pose(
       min_detection_confidence=0.5,
@@ -42,7 +42,7 @@ def getCoords():
         actual_time = time.time()
         current_time = math.floor(actual_time)
         if current_time > desired_time:
-          desired_time = current_time + 5
+          desired_time = current_time + 1
         
         success, image = cap.read()
         if not success:
@@ -80,8 +80,8 @@ def getCoords():
 
             if left_shoulder != None or left_elbow != None or angle != None:
               
-              arduino.write(str(math.ceil(angle)).encode()) 
-              # arduino.write(struct.pack('>B', math.ceil(angle)))
+              # arduino.write(str(math.ceil(angle)).encode()) 
+              arduino.write(struct.pack('I', math.ceil(angle)))
               #time.sleep(0.5)
               print(
                   f'Left Shoulder coordinates: ('
