@@ -8,6 +8,7 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
 unsigned int s;
 int angle;
+int prev_angle;
 
 void setup() {
   // put your setup code here, to run once:
@@ -19,14 +20,13 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  // pwm.setPWM(12, 0, angleToPulse(20));
   if (Serial.available() > 0) {
     s = Serial.read();
     angle = (int)s;
-    Serial.write(angle);
-    for(int i=0; i<angle; i+=5) {      
-        pwm.setPWM(12, i, angleToPulse(i));
-        delay(5);
+    Serial.write(angle);    
+    if (angle != prev_angle) {
+      pwm.setPWM(12, 0, angleToPulse(angle));
+      delay(200);
     }
     Serial.flush();
   }
