@@ -4,14 +4,31 @@ import cv2
 import mediapipe as mp
 import serial
 import time
+import struct
 
-#variable for timer
+#GLOBAL variable for timer
 actual_time = 0
 current_time = 0
 desired_time = 0
 
-def getAngle(left_shoulder, left_elbow):
-  return math.atan2(left_elbow.y - left_shoulder.y, left_elbow.x - left_shoulder.x) * 180 / math.pi
+def getAngle(left_joint, right_joint):
+  x = -(right_joint.x - left_joint.x)   #negate values since image is flipped
+  y = -(right_joint.y - left_joint.y)
+  return (math.atan2(y, x) * 180 / math.pi) + 90
+
+def initializeTimerVariables():
+  global actual_time, current_time, desired_time
+  actual_time = time.time()
+  current_time = math.floor(actual_time)
+  desired_time = current_time + 5
+
+def updateTimerVariables():
+  global actual_time, current_time, desired_time
+  actual_time = time.time()
+  current_time = math.floor(actual_time)
+  if current_time > desired_time:
+    desired_time = current_time + 5
+
 
 def getCoords():
   mp_drawing = mp.solutions.drawing_utils
@@ -24,25 +41,17 @@ def getCoords():
   # For webcam input:
   cap = cv2.VideoCapture(0)
   #serial communication for windows
-  ##arduino = serial.Serial('COM3', baudrate=9600, timeout=1)
+  arduino = serial.Serial('COM3', baudrate=9600, timeout=1)
   #serial communication for linux
   #arduino = serial.Serial('/dev/ttyUSB0', baudrate=9600, timeout=1)
 
-  #initialize timer variables
-  actual_time = time.time()
-  current_time = math.floor(actual_time)
-  desired_time = current_time + 5
+  initializeTimerVariables()
 
   with mp_pose.Pose(
       min_detection_confidence=0.5,
       min_tracking_confidence=0.5) as pose:
       while cap.isOpened():
-        #update timer variables
-        actual_time = time.time()
-        current_time = math.floor(actual_time)
-        if current_time > desired_time:
-          desired_time = current_time + 5
-        
+        updateTimerVariables()        
         success, image = cap.read()
         if not success:
           print("Ignoring empty camera frame.")
@@ -68,36 +77,54 @@ def getCoords():
         if cv2.waitKey(5) & 0xFF == 27:
           break
         try:
-          left_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER]
-          left_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW]
-
-          angle = getAngle(left_shoulder, left_elbow)
-          
           #update the coordinates only every second
+          global current_time, desired_time
           if current_time == desired_time:
             desired_time +=1
+            
+            right_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER]
+            right_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW]
+            right_wrist = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST]
 
-            if left_shoulder != None or left_elbow != None or angle != None:
+            shoulder_angle = getAngle(right_shoulder, right_elbow)
+            elbow_angle = getAngle(right_elbow, right_wrist)                       
+
+            if right_shoulder != None or right_elbow != None or shoulder_angle != None or right_wrist != None or elbow_angle != None:
+              #to send strings
+              #arduino.write(str(math.ceil(angle)).encode())
+              #shoulder_info = "shoulder " + str(math.ceil(shoulder_angle) + " ")
+              #arduino.write(shoulder_info.encode())
               
-              ##arduino.write(str(math.ceil(angle)).encode()) 
-              #time.sleep(0.5)
+              #to send int
+              arduino.write(struct.pack('I', math.ceil(shoulder_angle)))
+
+             
+            #  print(
+            #      f'Shoulder coordinates: ('
+            #      f'{right_shoulder.x * image_width}, '
+            #      f'{right_shoulder.y * image_height})'
+            #  )
+            #  print(
+            #      f'Elbow coordinates: ('
+            #      f'{right_elbow.x * image_width}, '
+            #      f'{right_elbow.y * image_height})'
+            #  )
               print(
-                  f'Left Shoulder coordinates: ('
-                  f'{results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].x * image_width}, '
-                  f'{results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].y * image_height})'
+                  f'Angle shoulder-elbow: '
+                  f'{math.ceil(shoulder_angle)}'
               )
+            #  print(
+            #      f'Angle elbow-wrist: '
+            #      f'{elbow_angle}'
+            #  )
+              arduino_read = arduino.readline()
+              arduino_read = int.from_bytes(arduino_read, "little")
               print(
-                  f'Left Elbow coordinates: ('
-                  f'{results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW].x * image_width}, '
-                  f'{results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW].y * image_height})'
-              )
-              print(
-                  f'Left Angle in degrees: '
-                  f'{angle}'
+                  f'Arduino is receiving: '
+                  f'{arduino_read}'
               )
         except AttributeError:
-          pass
-  
+          pass  
       
   cap.release()
 
