@@ -80,6 +80,11 @@ def getCoords():
           #update the coordinates only every second
           global current_time, desired_time
           if current_time == desired_time:
+            left_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER]
+            left_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW]
+
+            angle = getAngle(left_shoulder, left_elbow)
+
             desired_time +=1
             
             right_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER]
@@ -119,6 +124,11 @@ def getCoords():
             #  )
               arduino_read = arduino.readline()
               arduino_read = int.from_bytes(arduino_read, "little")
+              print(
+                  f'Arduino is receiving: '
+                  f'{arduino_read}'
+              )
+              arduino_read = arduino.readline()
               print(
                   f'Arduino is receiving: '
                   f'{arduino_read}'
