@@ -18,13 +18,13 @@ def getAngle(left_joint, right_joint):
 
 def initializeTimerVariables():
   global actual_time, current_time, desired_time
-  actual_time = time.time()
+  actual_time = time.time() * 10 #use deciseconds instead of seconds
   current_time = math.floor(actual_time)
-  desired_time = current_time + 5
+  desired_time = current_time + 10
 
 def updateTimerVariables():
   global actual_time, current_time, desired_time
-  actual_time = time.time()
+  actual_time = time.time() * 10
   current_time = math.floor(actual_time)
   if current_time > desired_time:
     desired_time = current_time + 5
@@ -40,6 +40,7 @@ def getCoords():
 
   # For webcam input:
   cap = cv2.VideoCapture(0)
+
   #serial communication for windows
   arduino = serial.Serial('COM3', baudrate=9600, timeout=1)
   #serial communication for linux
@@ -77,13 +78,9 @@ def getCoords():
         if cv2.waitKey(5) & 0xFF == 27:
           break
         try:
-          #update the coordinates only every second
+          #update the coordinates only every  half second
           global current_time, desired_time
           if current_time == desired_time:
-            left_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER]
-            left_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW]
-
-            angle = getAngle(left_shoulder, left_elbow)
 
             desired_time +=1
             
@@ -95,6 +92,16 @@ def getCoords():
             elbow_angle = getAngle(right_elbow, right_wrist)                       
 
             if right_shoulder != None or right_elbow != None or shoulder_angle != None or right_wrist != None or elbow_angle != None:
+              #print only angles between 0 to 180
+              if shoulder_angle <= 0:
+                shoulder_angle = 1
+              if shoulder_angle > 180:
+                shoulder_angle = 180
+              if elbow_angle <= 0:
+                elbow_angle = 1
+              if elbow_angle > 180:
+                elbow_angle = 180
+
               #to send strings
               #arduino.write(str(math.ceil(angle)).encode())
               #shoulder_info = "shoulder " + str(math.ceil(shoulder_angle) + " ")
@@ -122,6 +129,7 @@ def getCoords():
             #      f'Angle elbow-wrist: '
             #      f'{elbow_angle}'
             #  )
+            '''''
               arduino_read = arduino.readline()
               arduino_read = int.from_bytes(arduino_read, "little")
               print(
@@ -133,6 +141,7 @@ def getCoords():
                   f'Arduino is receiving: '
                   f'{arduino_read}'
               )
+              '''
         except AttributeError:
           pass  
       
