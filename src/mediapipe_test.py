@@ -107,8 +107,13 @@ def getCoords():
               #shoulder_info = "shoulder " + str(math.ceil(shoulder_angle) + " ")
               #arduino.write(shoulder_info.encode())
               
-              #to send int
-              arduino.write(struct.pack('I', math.ceil(shoulder_angle)))
+              #to send as string
+              shoulder_command = 'a' + math.ceil(shoulder_angle) + ','
+              arduino.write(struct.pack('s', shoulder_command))
+              elbow_command = 'b' + math.ceil(elbow_angle) + ','
+              arduino.write(struct.pack('s', elbow_command))
+
+              #arduino.write(struct.pack('I', math.ceil(elbow_angle + 200)))
 
              
             #  print(
