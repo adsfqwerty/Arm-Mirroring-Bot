@@ -38,21 +38,6 @@ int getDelay(int angle) {
   return delay;
 }
 
-// void loop() {
-//   // put your main code here, to run repeatedly:
-//   if (Serial.available() > 0) {
-//     s = Serial.read();
-//     angle = (int)s;
-//     Serial.write(angle);    
-//     if (angle > 0) {
-//       pwm.setPWM(shoulder_servo, 0, angleToPulse(angle));
-//       prev_angle = angle
-//       delay(getDelay(abs(angle-prev_angle)));
-//     }
-//     Serial.flush();
-//   }
-// }
-
 int angleToPulse(int ang){
    int pulse = map(ang,0, 180, SERVOMIN,SERVOMAX);// map angle of 0 to 180 to Servo min and Servo max 
   //  Serial.println("Angle: "); Serial.print(ang);
@@ -70,21 +55,21 @@ void loop() {
     char c = Serial.read();  //gets one byte from serial buffer
     if (c == ',') {
       if (readString.length() >1) {
-        Serial.println(readString); //prints string to serial port out
+        // Serial.println(readString); //prints string to serial port out
 
         int angle = readString.substring(1).toInt();  //convert readString into a number
 
 
         Serial.print("writing Angle: ");
         Serial.println(angle);
-        if(readString.indexOf('a') > 0){ 
+        if(readString.indexOf('a') == 0){ 
           pwm.setPWM(shoulder_servo, 0, angleToPulse(angle));
-          delay(getDelay(abs(angle-prev_angle_shoulder));
+          delay(getDelay(abs(angle-prev_angle_shoulder)));
           prev_angle_shoulder = angle;
         }
-        if(readString.indexOf('b') >0) {
+        if(readString.indexOf('b') == 0) {
           pwm.setPWM(13, 0, angleToPulse(angle));
-          delay(getDelay(abs(angle-prev_angle_elbow));
+          delay(getDelay(abs(angle-prev_angle_elbow)));
           prev_angle_elbow = angle;
         }
 

@@ -108,10 +108,15 @@ def getCoords():
               #arduino.write(shoulder_info.encode())
               
               #to send as string
-              shoulder_command = 'a' + math.ceil(shoulder_angle) + ','
-              arduino.write(struct.pack('s', shoulder_command))
-              elbow_command = 'b' + math.ceil(elbow_angle) + ','
-              arduino.write(struct.pack('s', elbow_command))
+              shoulder_command = 'a' + str(math.ceil(shoulder_angle)) + ','
+              # shoulder_command = shoulder_command.encode('utf-8')
+              #arduino.write(struct.pack('s', shoulder_command))
+              elbow_command = 'b' + str(math.ceil(elbow_angle)) + ','
+              # elbow_command = elbow_command.encode('utf-8')
+              command = shoulder_command + elbow_command
+              #arduino.write(struct.pack('s', elbow_command))
+              # arduino.write(struct.pack('s', shoulder_command+elbow_command))
+              arduino.write(bytes(command.encode()))
 
               #arduino.write(struct.pack('I', math.ceil(elbow_angle + 200)))
 
@@ -130,23 +135,16 @@ def getCoords():
                   f'Angle shoulder-elbow: '
                   f'{math.ceil(shoulder_angle)}'
               )
-            #  print(
-            #      f'Angle elbow-wrist: '
-            #      f'{elbow_angle}'
-            #  )
-            '''''
-              arduino_read = arduino.readline()
-              arduino_read = int.from_bytes(arduino_read, "little")
-              print(
-                  f'Arduino is receiving: '
-                  f'{arduino_read}'
-              )
-              arduino_read = arduino.readline()
-              print(
-                  f'Arduino is receiving: '
-                  f'{arduino_read}'
-              )
-              '''
+            print(
+                f'Angle elbow-wrist: '
+                f'{elbow_angle}'
+            )
+            arduino_read = arduino.readline()
+            arduino_read = arduino_read.decode()
+            print(
+                f'Arduino is receiving: '
+                f'{arduino_read}'
+            )
         except AttributeError:
           pass  
       
