@@ -88,57 +88,53 @@ def getCoords():
             right_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW]
             right_wrist = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST]
 
-            shoulder_angle = getAngle(right_shoulder, right_elbow)
-            elbow_angle = getAngle(right_elbow, right_wrist)                       
+            shoulder_angle_XY = getAngle(right_shoulder, right_elbow)
+            elbow_angle_XY = getAngle(right_elbow, right_wrist)
+            shoulder_angle_XZ = (math.atan2(right_shoulder.z-right_elbow.z, right_shoulder.x-right_elbow.x) * 180 / math.pi) + 90
+            print(
+                f'Delta X: '
+                f'{right_elbow.x - right_shoulder.x}\n'
+                f'Delta Z: '
+                f'{right_elbow.z - right_shoulder.z}\n'
+                f'Angle shoulder-elbow XZ: '
+                f'{shoulder_angle_XZ}'
+            )                     
 
-            if right_shoulder != None or right_elbow != None or shoulder_angle != None or right_wrist != None or elbow_angle != None:
+            if right_shoulder != None or right_elbow != None or shoulder_angle_XY != None or right_wrist != None or elbow_angle_XY != None:
               #print only angles between 0 to 180
-              if shoulder_angle <= 0:
-                shoulder_angle = 1
-              if shoulder_angle > 180:
-                shoulder_angle = 180
-              if elbow_angle <= 0:
-                elbow_angle = 1
-              if elbow_angle > 180:
-                elbow_angle = 180
-
-              #to send strings
-              #arduino.write(str(math.ceil(angle)).encode())
-              #shoulder_info = "shoulder " + str(math.ceil(shoulder_angle) + " ")
-              #arduino.write(shoulder_info.encode())
+              if shoulder_angle_XY <= 0:
+                shoulder_angle_XY = 1
+              if shoulder_angle_XY > 180:
+                shoulder_angle_XY = 180
+              if elbow_angle_XY <= 0:
+                elbow_angle_XY = 1
+              if elbow_angle_XY > 180:
+                elbow_angle_XY = 180
+              if shoulder_angle_XZ <= 0:
+                shoulder_angle_XZ = 1
+              if shoulder_angle_XZ > 180:
+                shoulder_angle_XZ = 180
               
               #to send as string
-              shoulder_command = 'a' + str(math.ceil(shoulder_angle)) + ','
-              # shoulder_command = shoulder_command.encode('utf-8')
-              #arduino.write(struct.pack('s', shoulder_command))
-              elbow_command = 'b' + str(math.ceil(elbow_angle)) + ','
-              # elbow_command = elbow_command.encode('utf-8')
-              command = shoulder_command + elbow_command
-              #arduino.write(struct.pack('s', elbow_command))
-              # arduino.write(struct.pack('s', shoulder_command+elbow_command))
+              shoulder_command = 'a' + str(math.ceil(shoulder_angle_XY)) + ','
+              elbow_command = 'b' + str(math.ceil(elbow_angle_XY)) + ','
+              shoulder_command_2 = 'c' + str(math.ceil(shoulder_angle_XZ)) + ','
+              command = shoulder_command + elbow_command + shoulder_command_2
+
               arduino.write(bytes(command.encode()))
-
-              #arduino.write(struct.pack('I', math.ceil(elbow_angle + 200)))
-
-             
-            #  print(
-            #      f'Shoulder coordinates: ('
-            #      f'{right_shoulder.x * image_width}, '
-            #      f'{right_shoulder.y * image_height})'
-            #  )
-            #  print(
-            #      f'Elbow coordinates: ('
-            #      f'{right_elbow.x * image_width}, '
-            #      f'{right_elbow.y * image_height})'
-            #  )
-              print(
-                  f'Angle shoulder-elbow: '
-                  f'{math.ceil(shoulder_angle)}'
-              )
-            print(
-                f'Angle elbow-wrist: '
-                f'{elbow_angle}'
-            )
+          
+              # print(
+              #     f'Angle shoulder-elbow XY: '
+              #     f'{math.ceil(shoulder_angle_XY)}'
+              # )
+              # print(
+              #     f'Elbow Z: '
+              #     f'{elbow_Z}'
+              # )
+            # print(
+            #     f'Angle elbow-wrist: '
+            #     f'{elbow_angle_XY}'
+            # )
             arduino_read = arduino.readline()
             arduino_read = arduino_read.decode()
             print(
