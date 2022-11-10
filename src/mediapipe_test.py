@@ -18,17 +18,24 @@ def getAngle(left_joint, right_joint):
 
 def initializeTimerVariables():
   global actual_time, current_time, desired_time
-  actual_time = time.time() * 10 #use deciseconds instead of seconds
+  actual_time = time.time() * 10
   current_time = math.floor(actual_time)
-  desired_time = current_time + 10
+  desired_time = current_time + 10 #start working 1 second after
 
 def updateTimerVariables():
   global actual_time, current_time, desired_time
   actual_time = time.time() * 10
   current_time = math.floor(actual_time)
   if current_time > desired_time:
-    desired_time = current_time + 5
+    desired_time = current_time + 50
 
+def fixAngle(angle):
+  if angle <= 0:
+    return 1
+  elif angle > 180:
+    return 180
+  else:
+    return angle
 
 def getCoords():
   mp_drawing = mp.solutions.drawing_utils
@@ -42,7 +49,7 @@ def getCoords():
   cap = cv2.VideoCapture(0)
 
   #serial communication for windows
-  arduino = serial.Serial('COM3', baudrate=9600, timeout=1)
+  arduino = serial.Serial('COM4', baudrate=9600, timeout=1)
   #serial communication for linux
   #arduino = serial.Serial('/dev/ttyUSB0', baudrate=9600, timeout=1)
 
@@ -78,19 +85,20 @@ def getCoords():
         if cv2.waitKey(5) & 0xFF == 27:
           break
         try:
-          #update the coordinates only every  half second
+          
           global current_time, desired_time
           if current_time == desired_time:
 
-            desired_time +=1
+            desired_time += 10
             
             right_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER]
             right_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW]
             right_wrist = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST]
-
+            
             shoulder_angle_XY = getAngle(right_shoulder, right_elbow)
             elbow_angle_XY = getAngle(right_elbow, right_wrist)
             shoulder_angle_XZ = (math.atan2(right_shoulder.z-right_elbow.z, right_shoulder.x-right_elbow.x) * 180 / math.pi) + 90
+                        
             print(
                 f'Delta X: '
                 f'{right_elbow.x - right_shoulder.x}\n'
@@ -98,22 +106,19 @@ def getCoords():
                 f'{right_elbow.z - right_shoulder.z}\n'
                 f'Angle shoulder-elbow XZ: '
                 f'{shoulder_angle_XZ}'
-            )                     
+            )                
 
             if right_shoulder != None or right_elbow != None or shoulder_angle_XY != None or right_wrist != None or elbow_angle_XY != None:
               #print only angles between 0 to 180
-              if shoulder_angle_XY <= 0:
-                shoulder_angle_XY = 1
-              if shoulder_angle_XY > 180:
-                shoulder_angle_XY = 180
-              if elbow_angle_XY <= 0:
-                elbow_angle_XY = 1
-              if elbow_angle_XY > 180:
-                elbow_angle_XY = 180
-              if shoulder_angle_XZ <= 0:
-                shoulder_angle_XZ = 1
-              if shoulder_angle_XZ > 180:
-                shoulder_angle_XZ = 180
+              shoulder_angle_XY = fixAngle(shoulder_angle_XY)
+              elbow_angle_XY = fixAngle(elbow_angle_XY)
+
+              '''print(
+                f'shoulder: '
+                f'{shoulder_angle_XY}\n'
+                f'elbow: '
+                f'{elbow_angle_XY}\n'
+              )'''
               
               #to send as string
               shoulder_command = 'a' + str(math.ceil(shoulder_angle_XY)) + ','
