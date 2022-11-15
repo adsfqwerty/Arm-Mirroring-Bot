@@ -7,6 +7,15 @@ class Command():
         self.right_shoulder = None
         self.right_elbow = None
         self.right_wrist = None
+        self.right_shoulder_x = 0
+        self.right_shoulder_y = 0
+        self.right_shoulder_z = 0
+        self.right_elbow_x = 0
+        self.right_elbow_y = 0
+        self.right_elbow_z = 0
+        self.right_wrist_x = 0
+        self.right_wrist_y = 0
+        self.right_wrist_z = 0
         
         self.shoulder_angle_XY = 0
         self.elbow_angle_XY = 0

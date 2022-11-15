@@ -6,9 +6,10 @@ from utils import Command, Timer
 
 
 class Camera():
-    def __init__(self, camera, name):
+    def __init__(self, camera, name, command):
         self.camera = camera
         self.name = name
+        self.command = command
         self.cam_thread = threading.Thread(target=self.run)
         self.cam_thread.daemon = True
 
@@ -37,7 +38,6 @@ class Camera():
 
         mp_pose = mp.solutions.pose
         timer = Timer() # initialize timer
-        command = Command() # initialize command
 
         with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
             while self.camera.isOpened():
@@ -63,16 +63,28 @@ class Camera():
                     if timer.current_time == timer.desired_time:
                         timer.desired_time += 1
 
-                        command.right_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER]
-                        command.right_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW]
-                        command.right_wrist = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST]
+                        if self.name == "front":
+                            self.command.right_shoulder.x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].x
+                            self.command.right_shoulder.y = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
 
-                        command.updateAngles()
+                            self.command.right_wrist.x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].x
+                            self.command.right_wrist.y = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
 
-                        command.printDeltas()
+                            self.command.right_elbow.x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].x
+                            self.command.right_elbow.y = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
+                        if self.name == "side":
+                            self.command.right_shoulder.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].z
 
-                        if command.arduino_connected:
-                            command.writeCommand()
+                            self.command.right_wrist.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].z
+
+                            self.command.right_elbow.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].z
+
+                    self.command.updateAngles()
+
+                    self.command.printDeltas()
+
+                    if self.command.arduino_connected:
+                        self.command.writeCommand()
 
                 except AttributeError:
                     pass
@@ -81,7 +93,11 @@ class Camera():
 
 
 if __name__ == "__main__":
-    front_cam = Camera(cv2.VideoCapture(0), 'front') # webcam
+    command = Command()
+    front_cam = Camera(cv2.VideoCapture(0), 'front', command) # webcam
+    # side_cam = Camera(cv2.VideoCapture(1), 'side', command) # side camera
     front_cam.cam_thread.start()
+    # side_cam.cam_thread.start()
+
 
     time.sleep(100)
