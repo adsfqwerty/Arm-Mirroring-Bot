@@ -89,7 +89,7 @@ def getCoords():
             right_wrist = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST]
 
             shoulder_angle_XY = getAngle(right_shoulder, right_elbow)
-            elbow_angle_XY = getAngle(right_elbow, right_wrist)
+            elbow_angle_XY = getAngle(right_elbow, right_wrist) - shoulder_angle_XY
             shoulder_angle_XZ = (math.atan2(right_shoulder.z-right_elbow.z, right_shoulder.x-right_elbow.x) * 180 / math.pi) + 90
             print(
                 f'Delta X: '
