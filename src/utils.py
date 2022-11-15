@@ -4,9 +4,6 @@ import serial
 
 class Command():
     def __init__(self):
-        self.right_shoulder = None
-        self.right_elbow = None
-        self.right_wrist = None
         self.right_shoulder_x = 0
         self.right_shoulder_y = 0
         self.right_shoulder_z = 0
@@ -39,7 +36,7 @@ class Command():
     def updateAngles(self):
         # Update angles
         self.shoulder_angle_XY = self.getAngle(self.right_shoulder, self.right_elbow)
-        self.elbow_angle_XY = self.getAngle(self.right_elbow, self.right_wrist)-self.shoulder_angle_XY
+        self.elbow_angle_XY = self.getAngle(self.right_elbow, self.right_wrist) - self.shoulder_angle_XY
         self.shoulder_angle_XZ = (math.atan2(self.right_shoulder.z-self.right_elbow.z, self.right_shoulder.x-self.right_elbow.x) * 180 / math.pi) + 90
 
     def printDeltas(self):
