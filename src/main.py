@@ -3,6 +3,9 @@ import threading
 import mediapipe as mp
 import time
 from utils import Command, Timer
+import threading
+
+# lock = threading.Lock()
 
 
 class Camera():
@@ -14,7 +17,8 @@ class Camera():
         self.cam_thread.daemon = True
 
     def displayFrame(self, image):
-        cv2.imshow('MediaPipe Pose', cv2.flip(image, 1))
+        title = 'MediaPipe Pose ' + self.name
+        cv2.imshow(title, cv2.flip(image, 1))
         if cv2.waitKey(5) & 0xFF == 27:
             print("Cannot display frame")
             return None
@@ -62,29 +66,38 @@ class Camera():
                 try:
                     if timer.current_time == timer.desired_time:
                         timer.desired_time += 1
-
                         if self.name == "front":
+                            # lock.acquire()
                             self.command.right_shoulder.x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].x
-                            self.command.right_shoulder.y = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
+                            self.command.right_shoulder.y_1 = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
 
                             self.command.right_wrist.x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].x
-                            self.command.right_wrist.y = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
+                            self.command.right_wrist.y_1 = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
 
                             self.command.right_elbow.x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].x
-                            self.command.right_elbow.y = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
+                            self.command.right_elbow.y_1 = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
+                            # lock.release()
                         if self.name == "side":
-                            self.command.right_shoulder.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].z
+                            # lock.acquire()
+                            self.command.right_shoulder.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].x
+                            self.command.right_shoulder.y_2 = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
 
-                            self.command.right_wrist.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].z
+                            self.command.right_wrist.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].x
+                            self.command.right_wrist.y_2 = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
 
-                            self.command.right_elbow.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].z
+                            self.command.right_elbow.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].x
+                            self.command.right_elbow.y_2 = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
+                            # lock.release()
 
                     self.command.updateAngles()
 
-                    self.command.printDeltas()
+                    # self.command.printDeltas()
+                    # self.command.readArduinoMessage()
 
-                    if self.command.arduino_connected:
+                    if self.command.arduino_connected == True:
+                        print('writing command...')
                         self.command.writeCommand()
+
 
                 except AttributeError:
                     pass
@@ -94,10 +107,9 @@ class Camera():
 
 if __name__ == "__main__":
     command = Command()
-    front_cam = Camera(cv2.VideoCapture(0), 'front', command) # webcam
-    # side_cam = Camera(cv2.VideoCapture(1), 'side', command) # side camera
+    front_cam = Camera(cv2.VideoCapture(0, cv2.CAP_DSHOW), 'front', command) # webcam
+    # side_cam = Camera(cv2.VideoCapture(1, cv2.CAP_DSHOW), 'side', command) # side camera
     front_cam.cam_thread.start()
     # side_cam.cam_thread.start()
-
 
     time.sleep(100)
