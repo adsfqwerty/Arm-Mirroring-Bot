@@ -9,10 +9,12 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // pin# where servos are located
 uint8_t shoulder_servo = 12;
 uint8_t elbow_servo = 13;
+uint8_t z_servo = 14;
 
 unsigned int s;
 int prev_angle_shoulder = 0;
 int prev_angle_elbow = 0;
+int prev_angle_z = 0;
 
 String readString;
 
@@ -25,6 +27,7 @@ void setup() {
   //initiate all servos to position 0
   pwm.setPWM(shoulder_servo, 0, angleToPulse(0));
   pwm.setPWM(elbow_servo, 0, angleToPulse(0));
+  pwm.setPWM(z_servo, 0, angleToPulse(0));
   delay(1000);
 }
 
@@ -68,9 +71,14 @@ void loop() {
           prev_angle_shoulder = angle;
         }
         if(readString.indexOf('b') == 0) {
-          pwm.setPWM(13, 0, angleToPulse(angle));
+          pwm.setPWM(elbow_servo, 0, angleToPulse(angle));
           delay(getDelay(abs(angle-prev_angle_elbow)));
           prev_angle_elbow = angle;
+        }
+        if(readString.indexOf('c') == 0) {
+          pwm.setPWM(z_servo, 0, angleToPulse(angle));
+          delay(getDelay(abs(angle-prev_angle_z)));
+          prev_angle_z = angle;
         }
 
         readString=""; //clears variable for new input
