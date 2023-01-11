@@ -19,7 +19,7 @@ class Command():
         self.shoulder_angle_XZ = 0
 
         try:
-            self.arduino = serial.Serial('COM3', baudrate=9600, timeout=1)
+            self.arduino = serial.Serial('COM4', baudrate=9600, timeout=1)
             self.arduino_connected = True
         except serial.SerialException:
             print("No connection to arduino detected. Continuing in 3 seconds...")
@@ -36,6 +36,10 @@ class Command():
     def updateAngles(self):
         # Update angles
         self.shoulder_angle_XY = self.getAngle(self.right_shoulder, self.right_elbow)
+        print(
+            f'XY angle: '
+            f'{self.shoulder_angle_XY}'
+            )
         self.elbow_angle_XY = self.getAngle(self.right_elbow, self.right_wrist) - self.shoulder_angle_XY
         self.shoulder_angle_XZ = (math.atan2(self.right_shoulder.z-self.right_elbow.z, self.right_shoulder.x-self.right_elbow.x) * 180 / math.pi) + 90
 
