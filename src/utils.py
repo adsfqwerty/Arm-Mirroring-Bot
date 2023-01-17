@@ -5,13 +5,16 @@ import serial
 class Command():
     def __init__(self):
         self.right_shoulder_x = 0
-        self.right_shoulder_y = 0
+        self.right_shoulder_y_front = 0
+        self.right_shoulder_y_side = 0
         self.right_shoulder_z = 0
         self.right_elbow_x = 0
-        self.right_elbow_y = 0
+        self.right_elbow_y_front = 0
+        self.right_elbow_y_side = 0
         self.right_elbow_z = 0
         self.right_wrist_x = 0
-        self.right_wrist_y = 0
+        self.right_wrist_y_front = 0
+        self.right_wrist_y_side = 0
         self.right_wrist_z = 0
         
         self.shoulder_angle_XY = 0
@@ -27,31 +30,43 @@ class Command():
             self.arduino_connected = False
             pass
 
-    def getAngle(self, joint1, joint2):
+    def getTangent(self, joint1_x, joint2_x, joint1_y, joint2_y):
         # Get inverse tangent angle from joint 1 and joint 2
-        x = -(joint1.x - joint2.x)   #negate values since image is flipped
-        y = -(joint1.y - joint2.y)
-        return (math.atan2(y, x) * 180 / math.pi) + 90
+        x = -(joint1_x - joint2_x)   #negate values since image is flipped
+        y = -(joint1_y - joint2_y)
+        return math.atan2(y, x) * 180 / math.pi + 90
+    
+    def getShoulderAngleXY(self):
+        # Get angle between shoulder and elbow in XY plane
+        return self.getTangent(self.right_shoulder_x, self.right_elbow_x, self.right_shoulder_y_front, self.right_elbow_y_front)
+
+    def getElbowAngleXY(self):
+        # Get angle between elbow and wrist in XY plane
+        return self.getTangent(self.right_elbow_x, self.right_wrist_x, self.right_elbow_y_front, self.right_wrist_y_front)
+
+    def getShoulderAngleYZ(self):
+        # Get angle between shoulder and elbow in YZ plane
+        return self.getTangent(self.right_shoulder_z, self.right_elbow_z, self.right_shoulder_y_side, self.right_elbow_y_side)
 
     def updateAngles(self):
         # Update angles
-        self.shoulder_angle_XY = self.getAngle(self.right_shoulder, self.right_elbow)
+        self.shoulder_angle_XY = self.getShoulderAngleXY()
         print(
             f'XY angle: '
             f'{self.shoulder_angle_XY}'
             )
-        self.elbow_angle_XY = self.getAngle(self.right_elbow, self.right_wrist) - self.shoulder_angle_XY
-        self.shoulder_angle_XZ = (math.atan2(self.right_shoulder.z-self.right_elbow.z, self.right_shoulder.x-self.right_elbow.x) * 180 / math.pi) + 90
+        self.elbow_angle_XY = self.getElbowAngleXY()
+        # self.shoulder_angle_XZ = (math.atan2(self.right_shoulder.z-self.right_elbow.z, self.right_shoulder.x-self.right_elbow.x) * 180 / math.pi) + 90
 
     def printDeltas(self):
         # Print positional and angular deltas between joints
         print(
             f'Delta X: '
             f'{self.right_elbow.x - self.right_shoulder.x}\n'
-            f'Delta Z: '
-            f'{self.right_elbow.z - self.right_shoulder.z}\n'
-            f'Angle shoulder-elbow XZ: '
-            f'{self.shoulder_angle_XZ}'
+            # f'Delta Z: '
+            # f'{self.right_elbow.z - self.right_shoulder.z}\n'
+            # f'Angle shoulder-elbow XZ: '
+            # f'{self.shoulder_angle_XZ}'
         )
 
     def readArduinoMessage(self):
