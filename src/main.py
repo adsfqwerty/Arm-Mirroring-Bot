@@ -3,6 +3,7 @@ import threading
 import mediapipe as mp
 import time
 from utils import Command, Timer
+import queue
 
 
 class Camera():
@@ -12,6 +13,9 @@ class Camera():
         self.command = command
         self.cam_thread = threading.Thread(target=self.run)
         self.cam_thread.daemon = True
+        self.queue_shoulder_angle_XY = queue.Queue()
+        self.queue_elbow_angle_XY = queue.Queue()
+        self.queue_shoulder_angle_XZ = queue.Queue()
 
     def displayFrame(self, image):
         cv2.imshow('MediaPipe Pose', cv2.flip(image, 1))
@@ -83,8 +87,22 @@ class Camera():
 
                     self.command.printDeltas()
 
+                    self.queue_elbow_angle_XY.put(self.command.elbow_angle_XY)
+                    self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)
+                    self.queue_shoulder_angle_XZ.put(self.command.shoulder_angle_XZ)
+
+
+
                     if self.command.arduino_connected:
-                        self.command.writeCommand()
+                        if self.queue.qsize() == 3:
+                            self.command.elbow_angle_XY = int(sum(list(self.queue_elbow_angle_XY.queue))/3)
+                            self.command.shoulder_angle_XY = int(sum(list(self.queue_shoulder_angle_XY.queue))/3)
+                            self.command.shoulder_angle_XZ = int(sum(list(self.queue_shoulder_angle_XZ.queue))/3)
+                            self.queue_elbow_angle_XY.get()
+                            self.queue_shoulder_angle_XY.get()
+                            self.queue_shoulder_angle_XZ.get()
+
+                            self.command.writeCommand()
 
                 except AttributeError:
                     pass
