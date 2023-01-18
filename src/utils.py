@@ -62,7 +62,7 @@ class Command():
         # Print positional and angular deltas between joints
         print(
             f'Delta X: '
-            f'{self.right_elbow.x - self.right_shoulder.x}\n'
+            f'{self.right_elbow_x - self.right_shoulder_x}\n'
             # f'Delta Z: '
             # f'{self.right_elbow.z - self.right_shoulder.z}\n'
             # f'Angle shoulder-elbow XZ: '
@@ -79,28 +79,30 @@ class Command():
         )
 
     def writeCommand(self):
-        if self.right_shoulder != None or self.right_elbow != None or self.shoulder_angle_XY != None or self.right_wrist != None or self.elbow_angle_XY != None:
+        if self.right_shoulder_x != None or self.right_shoulder_y_front != None or self.right_shoulder_y_side != None or self.right_elbow_x != None or self.right_elbow_y_front != None or self.right_elbow_y_side != None or self.shoulder_angle_XY != None or self.right_wrist_x != None or self.right_wrist_y_front != None or self.right_wrist_y_side != None or self.elbow_angle_XY != None:
               # Print only angles between 0 to 180
-              if shoulder_angle_XY <= 0:
-                shoulder_angle_XY = 1
-              if shoulder_angle_XY > 180:
-                shoulder_angle_XY = 180
-              if elbow_angle_XY <= 0:
-                elbow_angle_XY = 1
-              if elbow_angle_XY > 180:
-                elbow_angle_XY = 180
-              if shoulder_angle_XZ <= 0:
-                shoulder_angle_XZ = 1
-              if shoulder_angle_XZ > 180:
-                shoulder_angle_XZ = 180
+              if self.shoulder_angle_XY <= 0:
+                self.shoulder_angle_XY = 1
+              if self.shoulder_angle_XY > 180:
+                self.shoulder_angle_XY = 180
+              if self.elbow_angle_XY <= 0:
+                self.elbow_angle_XY = 1
+              if self.elbow_angle_XY > 180:
+                self.elbow_angle_XY = 180
+            #   if self.shoulder_angle_XZ <= 0:
+                # self.shoulder_angle_XZ = 1
+            #   if self.shoulder_angle_XZ > 180:
+                # self.shoulder_angle_XZ = 180
 
         # Command format: motor (char), angle (int to string), end token (',' character)
         #   ex. a120, (set motor a to 120 degrees)
         #   ex. b89,  (set motor b to 89 degrees) 
         shoulder_command = 'a' + str(math.ceil(self.shoulder_angle_XY)) + ','
         elbow_command = 'b' + str(math.ceil(self.elbow_angle_XY)) + ','
-        shoulder_command_2 = 'c' + str(math.ceil(self.shoulder_angle_XZ)) + ','
-        msg = shoulder_command + elbow_command + shoulder_command_2
+        # shoulder_command_2 = 'c' + str(math.ceil(self.shoulder_angle_XZ)) + ','
+        # msg = shoulder_command + elbow_command + shoulder_command_2
+        msg = shoulder_command + elbow_command
+        print(msg)
 
         self.arduino.write(bytes(msg.encode()))
 

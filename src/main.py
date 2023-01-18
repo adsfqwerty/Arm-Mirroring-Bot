@@ -68,20 +68,23 @@ class Camera():
                         timer.desired_time += 1
 
                         if self.name == "front":
-                            self.command.right_shoulder.x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].x
-                            self.command.right_shoulder.y = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
+                            self.command.right_shoulder_x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].x
+                            self.command.right_shoulder_y_front = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
 
-                            self.command.right_wrist.x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].x
-                            self.command.right_wrist.y = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
+                            self.command.right_wrist_x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].x
+                            self.command.right_wrist_y_front = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
 
-                            self.command.right_elbow.x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].x
-                            self.command.right_elbow.y = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
+                            self.command.right_elbow_x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].x
+                            self.command.right_elbow_y_front = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
                         if self.name == "side":
-                            self.command.right_shoulder.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].z
+                            self.command.right_shoulder_z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].z
+                            self.command.right_shoulder_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
 
                             self.command.right_wrist.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].z
+                            self.command.right_wrist_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
 
                             self.command.right_elbow.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].z
+                            self.command.right_elbow_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
 
                     self.command.updateAngles()
 
@@ -89,20 +92,22 @@ class Camera():
 
                     self.queue_elbow_angle_XY.put(self.command.elbow_angle_XY)
                     self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)
-                    self.queue_shoulder_angle_XZ.put(self.command.shoulder_angle_XZ)
-
+                    # self.queue_shoulder_angle_XZ.put(self.command.shoulder_angle_XZ)
 
 
                     if self.command.arduino_connected:
-                        if self.queue.qsize() == 3:
+                        print('flag')
+                        print("queue size: ", self.queue_shoulder_angle_XY.qsize())
+                        if self.queue_shoulder_angle_XY.qsize() == 3:
                             self.command.elbow_angle_XY = int(sum(list(self.queue_elbow_angle_XY.queue))/3)
                             self.command.shoulder_angle_XY = int(sum(list(self.queue_shoulder_angle_XY.queue))/3)
-                            self.command.shoulder_angle_XZ = int(sum(list(self.queue_shoulder_angle_XZ.queue))/3)
+                            # self.command.shoulder_angle_XZ = int(sum(list(self.queue_shoulder_angle_XZ.queue))/3)
                             self.queue_elbow_angle_XY.get()
                             self.queue_shoulder_angle_XY.get()
-                            self.queue_shoulder_angle_XZ.get()
+                            # self.queue_shoulder_angle_XZ.get()
 
                             self.command.writeCommand()
+                            self.command.readArduinoMessage()
 
                 except AttributeError:
                     pass
