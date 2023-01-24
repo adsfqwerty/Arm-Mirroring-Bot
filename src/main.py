@@ -15,7 +15,7 @@ class Camera():
         self.cam_thread.daemon = True
         self.queue_shoulder_angle_XY = queue.Queue()
         self.queue_elbow_angle_XY = queue.Queue()
-        self.queue_shoulder_angle_XZ = queue.Queue()
+        self.queue_shoulder_angle_YZ = queue.Queue()
 
     def displayFrame(self, image):
         cv2.imshow('MediaPipe Pose', cv2.flip(image, 1))
@@ -92,19 +92,17 @@ class Camera():
 
                     self.queue_elbow_angle_XY.put(self.command.elbow_angle_XY)
                     self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)
-                    # self.queue_shoulder_angle_XZ.put(self.command.shoulder_angle_XZ)
+                    # self.queue_shoulder_angle_YZ.put(self.command.shoulder_angle_YZ)
 
 
                     if self.command.arduino_connected:
-                        print('flag')
-                        print("queue size: ", self.queue_shoulder_angle_XY.qsize())
                         if self.queue_shoulder_angle_XY.qsize() == 3:
                             self.command.elbow_angle_XY = int(sum(list(self.queue_elbow_angle_XY.queue))/3)
                             self.command.shoulder_angle_XY = int(sum(list(self.queue_shoulder_angle_XY.queue))/3)
-                            # self.command.shoulder_angle_XZ = int(sum(list(self.queue_shoulder_angle_XZ.queue))/3)
+                            # self.command.shoulder_angle_YZ = int(sum(list(self.queue_shoulder_angle_YZ.queue))/3)
                             self.queue_elbow_angle_XY.get()
                             self.queue_shoulder_angle_XY.get()
-                            # self.queue_shoulder_angle_XZ.get()
+                            # self.queue_shoulder_angle_YZ.get()
 
                             self.command.writeCommand()
                             self.command.readArduinoMessage()
