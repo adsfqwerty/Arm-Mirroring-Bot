@@ -20,6 +20,7 @@ class Command():
         self.shoulder_angle_XY = 0
         self.elbow_angle_XY = 0
         self.shoulder_angle_XZ = 0
+        self.fist = False
 
         try:
             self.arduino = serial.Serial('COM4', baudrate=9600, timeout=1)

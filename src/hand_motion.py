@@ -1,0 +1,172 @@
+import cv2
+import threading
+import mediapipe as mp
+import time
+from utils import Command, Timer
+import queue
+
+
+class Camera():
+    def __init__(self, camera, name, command):
+        self.camera = camera
+        self.name = name
+        self.command = command
+        self.cam_thread = threading.Thread(target=self.run)
+        self.cam_thread.daemon = True
+        self.queue_shoulder_angle_XY = queue.Queue()
+        self.queue_elbow_angle_XY = queue.Queue()
+        self.queue_shoulder_angle_XZ = queue.Queue()
+
+        self.hand = mp.solutions.hands.Hands().MULTI_HANDEDNESS['Right']
+
+
+    def displayFrame(self, image):
+        cv2.imshow('MediaPipe Pose', cv2.flip(image, 1))
+        if cv2.waitKey(5) & 0xFF == 27:
+            print("Cannot display frame")
+            return None
+
+    def drawPose(self, image, results):
+        mp_drawing = mp.solutions.drawing_utils
+        mp_drawing_styles = mp.solutions.drawing_styles
+
+        # Draw the pose annotation on the image.
+        image.flags.writeable = True
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        mp_drawing.draw_landmarks(
+            image,
+            results.pose_landmarks,
+            mp.solutions.pose.POSE_CONNECTIONS,
+            landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
+        return image
+
+
+    def run(self):
+
+        mp_pose = mp.solutions.pose
+        timer = Timer() # initialize timer
+
+        with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+            while self.camera.isOpened():
+                timer.updateTimerVariables()
+                success, image = self.camera.read()
+                if not success:
+                    print("Ignoring empty camera frame.")
+                    # If loading a video, use 'break' instead of 'continue'.
+                    break
+                
+                # To improve performance, optionally mark the image as not writeable to
+                # pass by reference.
+                image.flags.writeable = False
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                results = pose.process(image)
+
+                # Display image
+                image = self.drawPose(image, results)
+                self.displayFrame(image)
+
+
+                # write joint coordinates
+                try:
+                    if timer.current_time == timer.desired_time:
+                        timer.desired_time += 1
+
+                        if self.name == "front":
+                            self.command.right_shoulder_x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].x
+                            self.command.right_shoulder_y_front = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
+
+                            self.command.right_wrist_x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].x
+                            self.command.right_wrist_y_front = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
+
+                            self.command.right_elbow_x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].x
+                            self.command.right_elbow_y_front = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
+                        if self.name == "side":
+                            self.command.right_shoulder_z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].z
+                            self.command.right_shoulder_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
+
+                            self.command.right_wrist.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].z
+                            self.command.right_wrist_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
+
+                            self.command.right_elbow.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].z
+                            self.command.right_elbow_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
+
+                        # detect fist and make fist
+                        hands_info = self.hand.process(image)
+                        if hands_info.multi_hand_landmarks:
+                            for handLMS in results.multi_hand_landmarks:
+                                # https://google.github.io/mediapipe/solutions/hands.html
+                                lmList = []
+                                for id, lm in enumerate(handLMS.landmark):
+                                    h, w, c = image.shape
+                                    cx, cy = int(lm.x * w), int(lm.y * h)
+                                    lmList.append([id, cx, cy])
+                                indexX = 0
+                                indexY = 0
+                                indexMid = 0
+                                handBottomX = 0
+                                handBottomY = 0
+                                pinkyX = 0
+                                pinkyY = 0
+                                fistWarning = "Fist!"
+                                for lms in lmList:
+                                    if lms[0] == 7:
+                                        indexX, indexY = lms[1], lms[2]
+                                    elif lms[0] == 5:
+                                        indexMid = lms[2]
+                                    elif lms[0] == 19:
+                                        pinkyX, pinkyY = lms[1], lms[2]
+                                    elif lms[0] == 0:
+                                        handBottomX, handBottomY = lms[1], lms[2]
+                                if (indexY < handBottomY) and (indexY > indexMid):
+                                    cv2.rectangle(image, (indexX, indexY), (pinkyX, handBottomY), (0, 0, 255), 2)
+                                    cv2.putText(image, fistWarning, (pinkyX + 2, indexY - 2), .7,
+                                                (0, 0, 255), 1, cv2.LINE_4)
+                                    
+                                    # if it's a fist, send commands to arduino to make a fist.
+                                    self.command.fist = True
+                                else:
+                                    self.command.fist = False
+
+                        # detect fist and make fist
+
+
+
+
+                    self.command.updateAngles()
+
+                    self.command.printDeltas()
+
+                    self.queue_elbow_angle_XY.put(self.command.elbow_angle_XY)
+                    self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)
+                    # self.queue_shoulder_angle_XZ.put(self.command.shoulder_angle_XZ)
+
+
+                    if self.command.arduino_connected:
+                        print('flag')
+                        print("queue size: ", self.queue_shoulder_angle_XY.qsize())
+                        if self.queue_shoulder_angle_XY.qsize() == 3:
+                            self.command.elbow_angle_XY = int(sum(list(self.queue_elbow_angle_XY.queue))/3)
+                            self.command.shoulder_angle_XY = int(sum(list(self.queue_shoulder_angle_XY.queue))/3)
+                            # self.command.shoulder_angle_XZ = int(sum(list(git self.queue_shoulder_angle_XZ.queue))/3)
+                            self.queue_elbow_angle_XY.get()
+                            self.queue_shoulder_angle_XY.get()
+                            # self.queue_shoulder_angle_XZ.get()
+
+                            self.command.writeCommand()
+                            self.command.readArduinoMessage()
+
+                except AttributeError:
+                    pass
+
+            self.camera.release()
+
+
+if __name__ == "__main__":
+    command = Command()
+    front_cam = Camera(cv2.VideoCapture(0), 'front', command) # webcam
+    # side_cam = Camera(cv2.VideoCapture(1), 'side', command) # side camera
+    front_cam.cam_thread.start()
+    # side_cam.cam_thread.start()
+
+
+    time.sleep(100)
