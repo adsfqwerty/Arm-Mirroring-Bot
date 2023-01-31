@@ -93,19 +93,19 @@ class Command():
                 self.elbow_angle_XY = 1
               if self.elbow_angle_XY > 180:
                 self.elbow_angle_XY = 180
-            #   if self.shoulder_angle_YZ <= 0:
-            #     self.shoulder_angle_YZ = 1
-            #   if self.shoulder_angle_YZ > 180:
-            #     self.shoulder_angle_YZ = 180
+              if self.shoulder_angle_YZ <= 0:
+                self.shoulder_angle_YZ = 1
+              if self.shoulder_angle_YZ > 180:
+                self.shoulder_angle_YZ = 180
 
         # Command format: motor (char), angle (int to string), end token (',' character)
         #   ex. a120, (set motor a to 120 degrees)
         #   ex. b89,  (set motor b to 89 degrees) 
         shoulder_command = 'a' + str(math.ceil(self.shoulder_angle_XY)) + ','
         elbow_command = 'b' + str(math.ceil(self.elbow_angle_XY)) + ','
-        # shoulder_command_2 = 'c' + str(math.ceil(self.shoulder_angle_YZ)) + ','
-        # msg = shoulder_command + elbow_command + shoulder_command_2
-        msg = shoulder_command + elbow_command
+        shoulder_command_2 = 'c' + str(math.ceil(self.shoulder_angle_YZ)) + ','
+        msg = shoulder_command + elbow_command + shoulder_command_2
+        # msg = shoulder_command + elbow_command
         print(msg)
 
         self.arduino.write(bytes(msg.encode()))

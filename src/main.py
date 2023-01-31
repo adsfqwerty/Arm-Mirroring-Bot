@@ -80,10 +80,10 @@ class Camera():
                             self.command.right_shoulder_z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].z
                             self.command.right_shoulder_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
 
-                            self.command.right_wrist.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].z
+                            self.command.right_wrist_z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].z
                             self.command.right_wrist_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
 
-                            self.command.right_elbow.z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].z
+                            self.command.right_elbow_z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].z
                             self.command.right_elbow_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
 
                     self.command.updateAngles()
@@ -92,17 +92,17 @@ class Camera():
 
                     self.queue_elbow_angle_XY.put(self.command.elbow_angle_XY)
                     self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)
-                    # self.queue_shoulder_angle_YZ.put(self.command.shoulder_angle_YZ)
+                    self.queue_shoulder_angle_YZ.put(self.command.shoulder_angle_YZ)
 
 
                     if self.command.arduino_connected:
                         if self.queue_shoulder_angle_XY.qsize() == 3:
                             self.command.elbow_angle_XY = int(sum(list(self.queue_elbow_angle_XY.queue))/3)
                             self.command.shoulder_angle_XY = int(sum(list(self.queue_shoulder_angle_XY.queue))/3)
-                            # self.command.shoulder_angle_YZ = int(sum(list(self.queue_shoulder_angle_YZ.queue))/3)
+                            self.command.shoulder_angle_YZ = int(sum(list(self.queue_shoulder_angle_YZ.queue))/3)
                             self.queue_elbow_angle_XY.get()
                             self.queue_shoulder_angle_XY.get()
-                            # self.queue_shoulder_angle_YZ.get()
+                            self.queue_shoulder_angle_YZ.get()
 
                             self.command.writeCommand()
                             self.command.readArduinoMessage()
@@ -116,9 +116,9 @@ class Camera():
 if __name__ == "__main__":
     command = Command()
     front_cam = Camera(cv2.VideoCapture(0), 'front', command) # webcam
-    # side_cam = Camera(cv2.VideoCapture(1), 'side', command) # side camera
+    side_cam = Camera(cv2.VideoCapture(1), 'side', command) # side camera
     front_cam.cam_thread.start()
-    # side_cam.cam_thread.start()
+    side_cam.cam_thread.start()
 
 
     time.sleep(100)
