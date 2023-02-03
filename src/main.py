@@ -33,17 +33,23 @@ class Camera():
         mp_drawing.draw_landmarks(
             image,
             results.pose_landmarks,
-            mp.solutions.pose.POSE_CONNECTIONS,
+            mp.solutions.holistic.POSE_CONNECTIONS,
             landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
+        mp_drawing.draw_landmarks(
+            image,
+            results.right_hand_landmarks,
+            mp.solutions.holistic.HAND_CONNECTIONS)
         return image
 
 
     def run(self):
 
-        mp_pose = mp.solutions.pose
+        # mp_pose = mp.solutions.pose
+        # mp_hands = mp.solutions.hands
+        mp_holistic = mp.solutions.holistic
         timer = Timer() # initialize timer
 
-        with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+        with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
             while self.camera.isOpened():
                 timer.updateTimerVariables()
                 success, image = self.camera.read()
@@ -54,9 +60,8 @@ class Camera():
                 
                 # To improve performance, optionally mark the image as not writeable to
                 # pass by reference.
-                image.flags.writeable = False
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                results = pose.process(image)
+                results = holistic.process(image)
 
                 # Display image
                 image = self.drawPose(image, results)
@@ -68,31 +73,19 @@ class Camera():
                         timer.desired_time += 1
 
                         if self.name == "front":
-                            self.command.right_shoulder_x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].x
-                            self.command.right_shoulder_y_front = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
-
-                            self.command.right_wrist_x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].x
-                            self.command.right_wrist_y_front = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
-
-                            self.command.right_elbow_x = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].x
-                            self.command.right_elbow_y_front = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
-                        if self.name == "side":
-                            self.command.right_shoulder_z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].z
-                            self.command.right_shoulder_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
-
-                            self.command.right_wrist_z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].z
-                            self.command.right_wrist_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST].y
-
-                            self.command.right_elbow_z = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].z
-                            self.command.right_elbow_y_side = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW].y
+                            self.command.right_shoulder = results.pose_world_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_SHOULDER]
+                            self.command.right_elbow = results.pose_world_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_ELBOW]
+                            self.command.right_wrist = results.pose_world_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_WRIST]
+                            self.command.right_hip = results.pose_world_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_HIP]
+                            self.command.left_shoulder = results.pose_world_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_SHOULDER]
 
                     self.command.updateAngles()
 
-                    self.command.printDeltas()
+                    # self.command.printDeltas()
 
-                    self.queue_elbow_angle_XY.put(self.command.elbow_angle_XY)
-                    self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)
-                    self.queue_shoulder_angle_YZ.put(self.command.shoulder_angle_YZ)
+                    # self.queue_elbow_angle_XY.put(self.command.elbow_angle)
+                    # self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)
+                    # self.queue_shoulder_angle_YZ.put(self.command.shoulder_angle_YZ)
 
 
                     if self.command.arduino_connected:
@@ -116,9 +109,9 @@ class Camera():
 if __name__ == "__main__":
     command = Command()
     front_cam = Camera(cv2.VideoCapture(0), 'front', command) # webcam
-    side_cam = Camera(cv2.VideoCapture(1), 'side', command) # side camera
+    # side_cam = Camera(cv2.VideoCapture(1), 'side', command) # side camera
     front_cam.cam_thread.start()
-    side_cam.cam_thread.start()
+    # side_cam.cam_thread.start()
 
 
     time.sleep(100)
