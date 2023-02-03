@@ -60,13 +60,13 @@ class Command():
         self.shoulder_angle_XY = self.getShoulderAngleXY()
         self.shoulder_angle_YZ = self.getShoulderAngleXY()
         self.elbow_angle = self.getElbowAngle()
-        print('PRINTING ANGLES')
-        print(f'Shoulder XY: {self.shoulder_angle_XY}') 
-        print(f'Shoulder YZ: {self.shoulder_angle_YZ}') 
-        print(f'Elbow: {self.elbow_angle}')  
-        print('shoulder (x, y, z): ', str(round(self.right_shoulder.x, 5)) + " " +  str(round(self.right_shoulder.y, 5)) + " " + str(round(self.right_shoulder.z, 5))) 
-        print('elbow (x, y, z): ', str(round(self.right_elbow.x, 5)) + " " +  str(round(self.right_elbow.y, 5)) + " " + str(round(self.right_elbow.z, 5)))
-        print('wrist (x, y, z): ', str(round(self.right_wrist.x, 5)) + " " +  str(round(self.right_wrist.y, 5)) + " " + str(round(self.right_wrist.z, 5)))
+        # print('PRINTING ANGLES')
+        # print(f'Shoulder XY: {self.shoulder_angle_XY}') 
+        # print(f'Shoulder YZ: {self.shoulder_angle_YZ}') 
+        # print(f'Elbow: {self.elbow_angle}')  
+        # print('shoulder (x, y, z): ', str(round(self.right_shoulder.x, 5)) + " " +  str(round(self.right_shoulder.y, 5)) + " " + str(round(self.right_shoulder.z, 5))) 
+        # print('elbow (x, y, z): ', str(round(self.right_elbow.x, 5)) + " " +  str(round(self.right_elbow.y, 5)) + " " + str(round(self.right_elbow.z, 5)))
+        # print('wrist (x, y, z): ', str(round(self.right_wrist.x, 5)) + " " +  str(round(self.right_wrist.y, 5)) + " " + str(round(self.right_wrist.z, 5)))
 
     def printDeltas(self):
         # Print positional and angular deltas between joints

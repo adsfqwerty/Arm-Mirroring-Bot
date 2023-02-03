@@ -79,7 +79,53 @@ class Camera():
                             self.command.right_hip = results.pose_world_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_HIP]
                             self.command.left_shoulder = results.pose_world_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_SHOULDER]
 
+                        # detect fist and make fist
+                        if results.right_hand_landmarks:
+                            print('hello!!!!')
+                            # print(results.right_hand_landmarks)
+                            # print(len(results.right_hand_landmarks.landmark))
+                            id = 0
+                            for handLMS in results.right_hand_landmarks.landmark:
+                                # https://google.github.io/mediapipe/solutions/hands.html
+                                lmList = []
+                                h, w, c = image.shape
+                                cx , cy = int(handLMS.x* w), int(handLMS.y * h)
+                                lmList.append([id, cx, cy])
+                                id += 1
+   
+                                indexX = 0
+                                indexY = 0
+                                indexMid = 0
+                                handBottomX = 0
+                                handBottomY = 0
+                                pinkyX = 0
+                                pinkyY = 0
+                                fistWarning = "Fist!"
+                                for lms in lmList:
+                                    if lms[0] == 7:
+                                        indexX, indexY = lms[1], lms[2]
+                                        cv2.circle(image, (lms[1], lms[2]), 15, (255, 0, 255), cv2.FILLED)
+                                    elif lms[0] == 5:
+                                        indexMid = lms[2]
+                                    elif lms[0] == 19:
+                                        pinkyX, pinkyY = lms[1], lms[2]
+                                    elif lms[0] == 0:
+                                        handBottomX, handBottomY = lms[1], lms[2]
+                                if (indexY < handBottomY) and (indexY > indexMid):
+                                    cv2.rectangle(image, (indexX, indexY), (pinkyX, handBottomY), (0, 0, 255), 2)
+                                    cv2.putText(image, fistWarning, (pinkyX + 2, indexY - 2), .7,
+                                                (0, 0, 255), 1, cv2.LINE_4)
+                                    
+                                    # if it's a fist, send commands to arduino to make a fist.
+                                    print('IT\'S A FIST!!!!!!!!!!!!!!!!!!!!\n')
+                                    self.command.fist = True
+                                else:
+                                    self.command.fist = False
+
+                        # detect fist and make fist
+
                     self.command.updateAngles()
+
 
                     # self.command.printDeltas()
 
