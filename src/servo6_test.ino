@@ -71,34 +71,35 @@ void loop() {
 
         int angle = readString.substring(1).toInt();  //convert readString into a number
 
-        Serial.print("writing Angle: ");
-        Serial.println(angle);
-        if(readString.indexOf('a') == 0){ 
+        Serial.println(readString);
+
+
+        if(readString.indexOf('a') == 0 && angle < 120){ 
           pwm.setPWM(shoulder_rotation_servo, 0, angleToPulse(angle));
           delay(getDelay(abs(angle-prev_shoulder_rotation_servo)));
           prev_shoulder_rotation_servo = angle;
         }
-        if(readString.indexOf('b') == 0) {
+        if(readString.indexOf('b') == 0 && angle < 120) {
           pwm.setPWM(shoulder_servo, 0, angleToPulse(angle));
           delay(getDelay(abs(angle-prev_shoulder_servo)));
           prev_shoulder_servo = angle;
         }
-        if(readString.indexOf('c') == 0) {
+        if(readString.indexOf('c') == 0 && angle < 120) {
           pwm.setPWM(elbow_servo, 0, angleToPulse(angle));
           delay(getDelay(abs(angle-prev_elbow_servo)));
           prev_elbow_servo = angle;
         }
-        if(readString.indexOf('d') == 0){ 
+        if(readString.indexOf('d') == 0 && angle < 120){ 
           pwm.setPWM(wrist_servo, 0, angleToPulse(angle));
           delay(getDelay(abs(angle-prev_wrist_servo)));
           prev_wrist_servo = angle;
         }
-        if(readString.indexOf('e') == 0) {
+        if(readString.indexOf('e') == 0 && angle < 120) {
           pwm.setPWM(hand_rotation_servo, 0, angleToPulse(angle));
           delay(getDelay(abs(angle-prev_hand_rotation_servo)));
           prev_hand_rotation_servo = angle;
         }
-        if(readString.indexOf('f') == 0) {
+        if(readString.indexOf('f') == 0 && angle < 120) {
           pwm.setPWM(hand_servo, 0, angleToPulse(angle));
           delay(getDelay(abs(angle-prev_hand_servo)));
           prev_hand_servo = angle;
