@@ -80,7 +80,6 @@ class Camera():
                             self.command.left_shoulder = results.pose_world_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_SHOULDER]
 
                         # detect fist and make fist
-                        # TODO: this doesn't always work (ex. when fingers point east-west or directly toward the camera). Need to implement an averaging system that takes the detection avg of 10 frames and decides if it keeps a fist or not. Or, add more edge case protection
                         # TODO: move all of this fist detection stuff into utils into a separate function for better usability
                         if results.right_hand_landmarks:
                             # print(results.right_hand_landmarks)
@@ -98,22 +97,25 @@ class Camera():
                             for handLMS in results.right_hand_landmarks.landmark:
                                 # https://google.github.io/mediapipe/solutions/hands.html
                                 h, w, c = image.shape
-                                cx , cy = int(handLMS.x* w), int(handLMS.y * h)
-                                lmList.append([id, cx, cy])
+                                cx, cy, cz = int(handLMS.x* w), int(handLMS.y * h), int(handLMS.z* w)
+                                lmList.append([id, cx, cy, cz])
                                 id += 1
    
                             for lms in lmList:
                                 if lms[0] == 8:
-                                    indexX, indexY = lms[1], lms[2]
+                                    indexX, indexY, indexZ = lms[1], lms[2], lms[3]
                                     cv2.circle(image, (lms[1], lms[2]), 15, (255, 0, 255), cv2.FILLED)
                                 elif lms[0] == 6:
-                                    indexMid = lms[2]
-                                elif lms[0] == 19:
-                                    pinkyX, pinkyY = lms[1], lms[2]
+                                    indexMidX, indexMidY, indexMidZ = lms[1], lms[2], lms[3]
+                                elif lms[0] == 1:
+                                    thumbY = lms[2]
                                 elif lms[0] == 0:
                                     handBottomX, handBottomY = lms[1], lms[2]
-                            print("index Y: " + str(round(indexY, 5)) + "\nindex MCP: " + str(round(indexMid, 5)) + "\nhand bottom Y: " + str(round(handBottomY, 5)))
-                            if (((indexY < handBottomY) and (indexY > indexMid)) or ((indexY > handBottomY) and (indexY < indexMid))):
+                            print("index X: " + str(round(indexX, 5)) + "\nindex MCP X: " + str(round(indexMidX, 5)) + "\nhand bottom X: " + str(round(handBottomX, 5)))
+                            if (((indexY < handBottomY) and (indexY > indexMidY) and (indexZ < indexMidZ)) 
+                                or ((indexY > handBottomY) and (indexY < indexMidY) and (indexZ > indexMidZ))
+                                or ((indexX > handBottomX) and (indexX < indexMidX) and (indexZ > indexMidZ)) 
+                                or (indexX > handBottomX) and (indexX < indexMidX) and (indexZ < indexMidZ) and (thumbY > handBottomY)):
                                 # cv2.rectangle(image, (indexX, indexY), (pinkyX, handBottomY), (0, 0, 255), 2)
                                 # cv2.putText(image, fistWarning, (pinkyX + 2, indexY - 2), .7,
                                 #             (0, 0, 255), 1, cv2.LINE_4)
@@ -121,9 +123,9 @@ class Camera():
                                 # if it's a fist, send commands to arduino to make a fist.
 
                                 print('IT\'S A FIST!!!!!!!!!!!!!!!!!!!!\n')
-                                self.command.fist = True
+                                self.command.fist = 60
                             else:
-                                self.command.fist = False
+                                self.command.fist = 0
 
                         # detect fist and make fist
 
