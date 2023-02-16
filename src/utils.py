@@ -13,6 +13,7 @@ class Command():
         self.shoulder_angle_XY = 0
         self.elbow_angle = 0
         self.shoulder_angle_YZ = 0
+        self.fist = 0
 
         try:
             self.arduino = serial.Serial('COM3', baudrate=9600, timeout=1)
@@ -58,7 +59,7 @@ class Command():
     def updateAngles(self):
         # Update angles
         self.shoulder_angle_XY = self.getShoulderAngleXY()
-        self.shoulder_angle_YZ = self.getShoulderAngleXY()
+        self.shoulder_angle_YZ = self.getShoulderAngleYZ()
         self.elbow_angle = self.getElbowAngle()
         # print('PRINTING ANGLES')
         # print(f'Shoulder XY: {self.shoulder_angle_XY}') 
@@ -86,31 +87,33 @@ class Command():
         print(
             f'Arduino is receiving: '
             f'{arduino_read}'
+            f'\n'
         )
 
     def writeCommand(self):
-        if self.right_shoulder_x != None or self.right_shoulder_y_front != None or self.right_shoulder_y_side != None or self.right_elbow_x != None or self.right_elbow_y_front != None or self.right_elbow_y_side != None or self.shoulder_angle_XY != None or self.right_wrist_x != None or self.right_wrist_y_front != None or self.right_wrist_y_side != None or self.elbow_angle_XY != None:
+        if self.right_shoulder != None or self.right_elbow != None or self.shoulder_angle_XY != None or self.right_wrist != None or self.elbow_angle_XY != None:
               # Print only angles between 0 to 180
-              if self.shoulder_angle_XY <= 0:
+              if self.shoulder_angle_XY <= 1:
                 self.shoulder_angle_XY = 1
-              if self.shoulder_angle_XY > 180:
-                self.shoulder_angle_XY = 180
-              if self.elbow_angle_XY <= 0:
+              if self.shoulder_angle_XY > 120:
+                self.shoulder_angle_XY = 120
+              if self.elbow_angle_XY <= 1:
                 self.elbow_angle_XY = 1
-              if self.elbow_angle > 180:
-                self.elbow_angle = 180
-              if self.shoulder_angle_YZ <= 0:
+              if self.elbow_angle > 120:
+                self.elbow_angle = 120
+              if self.shoulder_angle_YZ <= 1:
                 self.shoulder_angle_YZ = 1
-              if self.shoulder_angle_YZ > 180:
-                self.shoulder_angle_YZ = 180
+              if self.shoulder_angle_YZ > 120:
+                self.shoulder_angle_YZ = 120
 
         # Command format: motor (char), angle (int to string), end token (',' character)
         #   ex. a120, (set motor a to 120 degrees)
         #   ex. b89,  (set motor b to 89 degrees) 
         shoulder_command = 'a' + str(math.ceil(self.shoulder_angle_XY)) + ','
-        elbow_command = 'b' + str(math.ceil(self.elbow_angle)) + ','
-        shoulder_command_2 = 'c' + str(math.ceil(self.shoulder_angle_YZ)) + ','
-        msg = shoulder_command + elbow_command + shoulder_command_2
+        elbow_command = 'c' + str(math.ceil(self.elbow_angle)) + ','
+        shoulder_command_2 = 'b' + str(math.ceil(self.shoulder_angle_YZ)) + ','
+        fist_command = 'f' + str(self.fist) + ','
+        msg = shoulder_command + elbow_command + shoulder_command_2 + fist_command
         # msg = shoulder_command + elbow_command
         print(msg)
 
