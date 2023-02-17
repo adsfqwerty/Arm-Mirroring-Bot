@@ -111,7 +111,7 @@ class Camera():
                                     thumbY = lms[2]
                                 elif lms[0] == 0:
                                     handBottomX, handBottomY = lms[1], lms[2]
-                            print("index X: " + str(round(indexX, 5)) + "\nindex MCP X: " + str(round(indexMidX, 5)) + "\nhand bottom X: " + str(round(handBottomX, 5)))
+                            # print("index X: " + str(round(indexX, 5)) + "\nindex MCP X: " + str(round(indexMidX, 5)) + "\nhand bottom X: " + str(round(handBottomX, 5)))
                             if (((indexY < handBottomY) and (indexY > indexMidY) and (indexZ < indexMidZ)) 
                                 or ((indexY > handBottomY) and (indexY < indexMidY) and (indexZ > indexMidZ))
                                 or ((indexX > handBottomX) and (indexX < indexMidX) and (indexZ > indexMidZ)) 
@@ -134,9 +134,9 @@ class Camera():
 
                     # self.command.printDeltas()
 
-                    # self.queue_elbow_angle_XY.put(self.command.elbow_angle)
-                    # self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)
-                    # self.queue_shoulder_angle_YZ.put(self.command.shoulder_angle_YZ)
+                    self.queue_elbow_angle_XY.put(self.command.elbow_angle)
+                    self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)
+                    self.queue_shoulder_angle_YZ.put(self.command.shoulder_angle_YZ)
 
 
                     if self.command.arduino_connected:
