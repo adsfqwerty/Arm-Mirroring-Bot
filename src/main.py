@@ -132,7 +132,7 @@ class Camera():
                     self.command.updateAngles()
 
 
-                    # self.command.printDeltas()
+                    self.command.printDeltas()
 
                     self.queue_elbow_angle_XY.put(self.command.elbow_angle)
                     self.queue_shoulder_angle_XY.put(self.command.shoulder_angle_XY)

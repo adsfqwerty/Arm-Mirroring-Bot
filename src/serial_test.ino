@@ -7,14 +7,20 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define SERVOMAX  550//575 // this is the 'maximum' pulse length count (out of 4096)
 
 // pin# where servos are located
-uint8_t shoulder_servo = 12;
-uint8_t elbow_servo = 13;
-uint8_t z_servo = 14;
+uint8_t shoulder_rotation_servo = 8;
+uint8_t shoulder_servo = 9;
+uint8_t elbow_servo = 10;
+uint8_t wrist_servo = 11;
+uint8_t hand_rotation_servo = 12;
+uint8_t hand_servo = 13;
 
 unsigned int s;
-int prev_angle_shoulder = 0;
-int prev_angle_elbow = 0;
-int prev_angle_z = 0;
+int prev_shoulder_rotation_servo = 0;
+int prev_shoulder_servo = 0;
+int prev_elbow_servo = 0;
+int prev_wrist_servo = 0;
+int prev_hand_rotation_servo = 0;
+int prev_hand_servo = 0;
 
 String readString;
 
@@ -25,9 +31,12 @@ void setup() {
   pwm.begin();
   pwm.setPWMFreq(60);
   //initiate all servos to position 0
+  pwm.setPWM(shoulder_rotation_servo, 0, angleToPulse(0));
   pwm.setPWM(shoulder_servo, 0, angleToPulse(0));
-  pwm.setPWM(elbow_servo, 0, angleToPulse(0));
-  pwm.setPWM(z_servo, 0, angleToPulse(0));
+  pwm.setPWM(elbow_servo, 0, angleToPulse(160));
+  pwm.setPWM(wrist_servo, 0, angleToPulse(120));
+  pwm.setPWM(hand_rotation_servo, 0, angleToPulse(0));
+  pwm.setPWM(hand_servo, 0, angleToPulse(0));
   delay(1000);
 }
 
@@ -52,40 +61,85 @@ void loop() {
 
   //expect single strings like 700a, or 1500c, or 2000d,
   //or like 30c, or 90a, or 180d,
-  //or combined like 30c,180b,70a,120d,
+  //or combined like 30c,180b,70a,170d,
 
   if (Serial.available())  {
-    char c = Serial.read();  //gets one byte from serial buffer
-    if (c == ',') {
+    char ch = Serial.read();  //gets one byte from serial buffer
+    if (ch == ',') {
       if (readString.length() >1) {
         // Serial.println(readString); //prints string to serial port out
 
         int angle = readString.substring(1).toInt();  //convert readString into a number
 
+        Serial.println(readString);
 
-        Serial.print("writing Angle: ");
-        Serial.println(angle);
-        if(readString.indexOf('a') == 0){ 
-          pwm.setPWM(shoulder_servo, 0, angleToPulse(angle));
-          delay(getDelay(abs(angle-prev_angle_shoulder)));
-          prev_angle_shoulder = angle;
+
+        if(readString.indexOf('a') == 0 && angle < 170){
+          if(angle < 170 && angle > 0) {
+            pwm.setPWM(shoulder_rotation_servo, 0, angleToPulse(angle));
+            delay(getDelay(abs(angle-prev_shoulder_rotation_servo)));
+            prev_shoulder_rotation_servo = angle;
+          }
+          else {
+            pwm.setPWM(shoulder_rotation_servo, 0, angleToPulse(prev_shoulder_rotation_servo));
+            delay(getDelay(abs(0)));
+          }
         }
-        if(readString.indexOf('b') == 0) {
-          pwm.setPWM(elbow_servo, 0, angleToPulse(angle));
-          delay(getDelay(abs(angle-prev_angle_elbow)));
-          prev_angle_elbow = angle;
+        if(readString.indexOf('b') == 0 && angle < 170) {
+          if(angle < 170 && angle > 0) {
+            pwm.setPWM(shoulder_servo, 0, angleToPulse(angle));
+            delay(getDelay(abs(angle-prev_shoulder_servo)));
+            prev_shoulder_servo = angle;
+          }
+          else {
+            pwm.setPWM(shoulder_servo, 0, angleToPulse(prev_shoulder_servo));
+            delay(getDelay(abs(0)));
+          }
         }
-        if(readString.indexOf('c') == 0) {
-          pwm.setPWM(z_servo, 0, angleToPulse(angle));
-          delay(getDelay(abs(angle-prev_angle_z)));
-          prev_angle_z = angle;
+        if(readString.indexOf('c') == 0 && angle < 170) {
+          if(angle < 170 && angle > 20) {
+            pwm.setPWM(elbow_servo, 0, angleToPulse(angle));
+            delay(getDelay(abs(angle-prev_elbow_servo)));
+            prev_elbow_servo = angle;
+          }
+          else {
+            pwm.setPWM(elbow_servo, 0, angleToPulse(prev_elbow_servo));
+            delay(getDelay(abs(0)));
+          }
+        }
+        if(readString.indexOf('d') == 0 && angle < 170){ 
+          if(angle < 170 && angle > 0) {
+            pwm.setPWM(wrist_servo, 0, angleToPulse(angle));
+            delay(getDelay(abs(angle-prev_wrist_servo)));
+            prev_wrist_servo = angle;
+          }
+          else {
+            pwm.setPWM(wrist_servo, 0, angleToPulse(prev_wrist_servo));
+            delay(getDelay(abs(0)));
+          }
+        }
+        if(readString.indexOf('e') == 0 && angle < 170) {
+          if(angle < 170 && angle > 0) {
+            pwm.setPWM(hand_rotation_servo, 0, angleToPulse(angle));
+            delay(getDelay(abs(angle-prev_hand_rotation_servo)));
+            prev_hand_rotation_servo = angle;
+          }
+          else {
+            pwm.setPWM(hand_rotation_servo, 0, angleToPulse(prev_hand_rotation_servo));
+            delay(getDelay(abs(0)));
+          }
+        }
+        if(readString.indexOf('f') == 0 && angle < 120) {
+          pwm.setPWM(hand_servo, 0, angleToPulse(angle));
+          delay(getDelay(abs(angle-prev_hand_servo)));
+          prev_hand_servo = angle;
         }
 
         readString=""; //clears variable for new input
       }
     }  
     else {     
-      readString += c; //makes the string readString
+      readString += ch; //makes the string readString
     }
   }
 }

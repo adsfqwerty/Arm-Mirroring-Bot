@@ -26,11 +26,17 @@ class Command():
     
     #Used to obtain angle between vectors in 3D
     def getMagnitude(self, v):
-        return math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)
+        if len(v) == 3:
+            return math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)
+        else:
+            return math.sqrt(v[0]**2 + v[1]**2)
 
 
     def calculateDotProduct(self, v1, v2):
-        return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
+        if len(v1) == 3:
+            return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
+        else:
+            return v1[0]*v2[0] + v1[1]*v2[1]
         
     def calculateAngle3d(self, left_joint, main_joint, right_joint):
 
@@ -44,9 +50,38 @@ class Command():
         angle = math.degrees(math.acos(dot_product/(v1_mag*v2_mag)))
         return angle
     
+    def calculateAngle2dXY(self, left_joint, main_joint, right_joint):
+        vector1 = [left_joint.x-main_joint.x, left_joint.y-main_joint.y]
+        vector2 = [right_joint.x-main_joint.x, right_joint.y-main_joint.y]
+
+        dot_product = self.calculateDotProduct(vector1, vector2)
+        v1_mag = self.getMagnitude(vector1)
+        v2_mag = self.getMagnitude(vector2)
+
+        angle = math.degrees(math.acos(dot_product/(v1_mag*v2_mag)))
+        return angle
+
+    def calculateAngle2dYZ(self, left_joint, main_joint, right_joint):
+        vector1 = [main_joint.y-left_joint.y, (main_joint.z-left_joint.z)*0.5*(1+math.exp(main_joint.z-left_joint.z))]
+        vector2 = [main_joint.y-right_joint.y, (main_joint.z-right_joint.z)*0.5*(1+math.exp(main_joint.z-right_joint.z))]
+
+        dot_product = self.calculateDotProduct(vector1, vector2)
+        v1_mag = self.getMagnitude(vector1)
+        v2_mag = self.getMagnitude(vector2)
+
+        angle = math.degrees(math.acos(dot_product/(v1_mag*v2_mag)))
+        return angle
+    
     def getShoulderAngleXY(self):
         # Get angle between shoulder and elbow in XY plane
-        return self.calculateAngle3d(self.right_elbow, self.right_shoulder, self.right_hip)
+        # print(self.right_elbow.y-self.right_shoulder.y)
+        #return self.calculateAngle3d(self.right_elbow, self.right_shoulder, self.right_hip)
+        return self.calculateAngle2dXY(self.right_elbow, self.right_shoulder, self.right_hip)
+    
+    def linearShoulderAngleX(self):
+        diff_shoulder_elbow_x = abs(self.right_elbow.x - self.right_shoulder.x)*100
+        adjusted_result = 80//19*diff_shoulder_elbow_x
+        return adjusted_result
 
     def getElbowAngle(self):
         # Get angle between elbow and wrist in XY plane
@@ -54,12 +89,16 @@ class Command():
 
     def getShoulderAngleYZ(self):
         # Get angle between shoulder and elbow in YZ plane
-        return self.calculateAngle3d(self.left_shoulder, self.right_shoulder, self.right_elbow)
+        return self.calculateAngle3d(self.right_elbow, self.right_shoulder, self.right_hip)
 
     def updateAngles(self):
         # Update angles
-        self.shoulder_angle_XY = self.getShoulderAngleXY()
         self.shoulder_angle_YZ = self.getShoulderAngleYZ()
+        # if self.shoulder_angle_YZ > 90:
+        #     self.shoulder_angle_XY = abs(180-self.getShoulderAngleXY())
+        # else:
+        #     self.shoulder_angle_XY = self.getShoulderAngleXY()
+        self.shoulder_angle_XY = self.linearShoulderAngleX()
         self.elbow_angle = self.getElbowAngle()
         # print('PRINTING ANGLES')
         # print(f'Shoulder XY: {self.shoulder_angle_XY}') 
@@ -74,8 +113,8 @@ class Command():
         print(
             f'Delta X: '
             f'{self.right_elbow.x - self.right_shoulder.x}\n'
-        #     f'Delta Z: '
-        #     f'{self.right_elbow_z - self.right_shoulder_z}\n'
+            f'Z: '
+            f'{self.right_hip.z*.2}\n'
         #     f'Angle shoulder-elbow YZ: '
         #     f'{self.shoulder_angle_YZ}'
         )
@@ -95,16 +134,16 @@ class Command():
               # Print only angles between 0 to 180
               if self.shoulder_angle_XY <= 1:
                 self.shoulder_angle_XY = 1
-              if self.shoulder_angle_XY > 120:
-                self.shoulder_angle_XY = 120
-              if self.elbow_angle_XY <= 1:
-                self.elbow_angle_XY = 1
-              if self.elbow_angle > 120:
-                self.elbow_angle = 120
+              if self.shoulder_angle_XY > 170:
+                self.shoulder_angle_XY = 170
+              if self.elbow_angle_XY <= 35:
+                self.elbow_angle_XY = 35
+              if self.elbow_angle > 170:
+                self.elbow_angle = 170
               if self.shoulder_angle_YZ <= 1:
                 self.shoulder_angle_YZ = 1
-              if self.shoulder_angle_YZ > 120:
-                self.shoulder_angle_YZ = 120
+              if self.shoulder_angle_YZ > 170:
+                self.shoulder_angle_YZ = 170
 
         # Command format: motor (char), angle (int to string), end token (',' character)
         #   ex. a120, (set motor a to 120 degrees)
