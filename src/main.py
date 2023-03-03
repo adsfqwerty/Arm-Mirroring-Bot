@@ -140,10 +140,10 @@ class Camera():
 
 
                     if self.command.arduino_connected:
-                        if self.queue_shoulder_angle_XY.qsize() == 3:
-                            self.command.elbow_angle_XY = int(sum(list(self.queue_elbow_angle_XY.queue))/3)
-                            self.command.shoulder_angle_XY = int(sum(list(self.queue_shoulder_angle_XY.queue))/3)
-                            self.command.shoulder_angle_YZ = int(sum(list(self.queue_shoulder_angle_YZ.queue))/3)
+                        if self.queue_shoulder_angle_XY.qsize() == 5:
+                            self.command.elbow_angle_XY = int(sum(list(self.queue_elbow_angle_XY.queue))/5)
+                            self.command.shoulder_angle_XY = int(sum(list(self.queue_shoulder_angle_XY.queue))/5)
+                            self.command.shoulder_angle_YZ = int(sum(list(self.queue_shoulder_angle_YZ.queue))/5)
                             self.queue_elbow_angle_XY.get()
                             self.queue_shoulder_angle_XY.get()
                             self.queue_shoulder_angle_YZ.get()

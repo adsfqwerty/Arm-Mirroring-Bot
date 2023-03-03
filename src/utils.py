@@ -80,7 +80,10 @@ class Command():
     
     def linearShoulderAngleX(self):
         diff_shoulder_elbow_x = abs(self.right_elbow.x - self.right_shoulder.x)*100
-        adjusted_result = 80//19*diff_shoulder_elbow_x
+        # if (self.right_elbow.y < self.right_shoulder.y):
+        #     adjusted_result = 180-(80//19*diff_shoulder_elbow_x)
+        # else:
+        adjusted_result = 80//19*diff_shoulder_elbow_x * 1.25
         return adjusted_result
 
     def getElbowAngle(self):
@@ -89,7 +92,7 @@ class Command():
 
     def getShoulderAngleYZ(self):
         # Get angle between shoulder and elbow in YZ plane
-        return self.calculateAngle3d(self.right_elbow, self.right_shoulder, self.right_hip)
+        return self.calculateAngle3d(self.right_elbow, self.right_shoulder, self.right_hip) * 1.25
 
     def updateAngles(self):
         # Update angles
@@ -111,12 +114,12 @@ class Command():
     def printDeltas(self):
         # Print positional and angular deltas between joints
         print(
-            f'Delta X: '
-            f'{self.right_elbow.x - self.right_shoulder.x}\n'
-            f'Z: '
-            f'{self.right_hip.z*.2}\n'
-        #     f'Angle shoulder-elbow YZ: '
-        #     f'{self.shoulder_angle_YZ}'
+            # f'Delta X: '
+            # f'{self.right_elbow.x - self.right_shoulder.x}\n'
+            # f'Z: '
+            # f'{self.right_hip.z*.2}\n'
+            f'Angle shoulder angle XY: '
+            f'{self.shoulder_angle_XY}'
         )
 
     def readArduinoMessage(self):
